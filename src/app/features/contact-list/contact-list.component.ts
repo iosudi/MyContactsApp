@@ -1,108 +1,105 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Contact } from '../../core/interfaces/contact';
-
-import { FormsModule } from '@angular/forms';
 import { PhonePipe } from '../../core/pipes/phone.pipe';
 import { SearchPipe } from '../../core/pipes/search.pipe';
+
 @Component({
   selector: 'app-contact-list',
-  imports: [FormsModule, PhonePipe, CommonModule, SearchPipe],
-
+  standalone: true,
+  imports: [CommonModule, FormsModule, PhonePipe, SearchPipe],
   templateUrl: './contact-list.component.html',
-  styleUrl: './contact-list.component.css'
+  styleUrls: ['./contact-list.component.css']
 })
 export class ContactListComponent {
   @Input() contactsList: Contact[] = [];
+  searchTerm = '';
+  showAddForm = false; // Add this property to control form visibility
 
-  searchTerm: string = ''
-
-
-  // add form model
+  // Form models
   newContact: Omit<Contact, 'id' | 'dateAdded'> = {
     name: '',
     phone: '',
-    email: '',
+    email: ''
   };
 
-  // edit state
+  // Edit state
   editingId: number | null = null;
   editModel: Omit<Contact, 'id' | 'dateAdded'> = {
     name: '',
     phone: '',
-    email: '',
+    email: ''
   };
 
   private nextId = 4;
 
-  trackById(_: number, c: Contact) { return c.id; }
+  // Form handling
+  resetAddForm(form: NgForm): void {
+    form.resetForm();
+    this.newContact = { name: '', phone: '', email: '' };
+    this.showAddForm = false; // Hide form when resetting
+  }
 
-  // --- ADD ---
-  addContact() {
-    const { name, phone, email } = this.newContact;
-
-    if (!name.trim() || !phone.trim() || !email.trim()) {
-      alert('Please fill in name, phone, and email.');
-      return;
-    }
-    if (!this.isValidEmail(email)) {
-      alert('Invalid email.');
-      return;
-    }
-
-    const id = this.nextId++;
+  addContact(): void {
+    if (!this.isValidContact(this.newContact)) return;
+    
     this.contactsList = [
       ...this.contactsList,
-      { id, name: name.trim(), phone: phone.trim(), email: email.trim(), dateAdded: new Date() },
+      {
+        id: this.nextId++,
+        ...this.newContact,
+        dateAdded: new Date()
+      }
     ];
-
-    // reset form
-    this.newContact = { name: '', phone: '', email: '' };
+    this.resetAddForm(new NgForm([], []));
+    this.showAddForm = false; // Hide form after adding
   }
 
-  // --- EDIT ---
-  startEdit(c: Contact) {
-    this.editingId = c.id;
-    this.editModel = { name: c.name, phone: c.phone, email: c.email };
+  // Edit handling
+  startEdit(contact: Contact): void {
+    this.editingId = contact.id;
+    this.editModel = { ...contact };
+    this.showAddForm = false; // Ensure add form is hidden when editing
   }
 
-  saveEdit(c: Contact) {
-    if (!this.editingId) return;
-
-    const { name, phone, email } = this.editModel;
-
-    if (!name.trim() || !phone.trim() || !email.trim()) {
-      alert('Please fill in name, phone, and email.');
-      return;
+  saveEdit(originalContact: Contact): void {
+    if (!this.editingId || !this.isValidContact(this.editModel)) return;
+    
+    if (confirm(`Save changes to ${originalContact.name}?`)) {
+      this.contactsList = this.contactsList.map(c => 
+        c.id === originalContact.id ? { ...c, ...this.editModel } : c
+      );
+      this.cancelEdit();
     }
-    if (!this.isValidEmail(email)) {
-      alert('Invalid email.');
-      return;
-    }
-
-    this.contactsList = this.contactsList.map(item =>
-      item.id === c.id
-        ? { ...item, name: name.trim(), phone: phone.trim(), email: email.trim() }
-        : item
-    );
-
-    this.cancelEdit();
   }
 
-  cancelEdit() {
+  cancelEdit(): void {
     this.editingId = null;
     this.editModel = { name: '', phone: '', email: '' };
   }
 
-  // --- DELETE ---
-  deleteContact(id: number) {
-    if (!confirm('Delete this contact?')) return;
-    this.contactsList = this.contactsList.filter(c => c.id !== id);
-    if (this.editingId === id) this.cancelEdit();
+  // Delete handling
+  deleteContact(id: number): void {
+    if (confirm('Delete this contact?')) {
+      this.contactsList = this.contactsList.filter(c => c.id !== id);
+      if (this.editingId === id) this.cancelEdit();
+    }
   }
 
-  // helpers
-  private isValidEmail(email: string) {
+  // Helpers
+  trackById(index: number, contact: Contact): number {
+    return contact.id;
+  }
+
+  private isValidContact(contact: { name: string; phone: string; email: string }): boolean {
+    return !!contact.name?.trim() && 
+           !!contact.phone?.trim() && 
+           this.isValidEmail(contact.email);
+  }
+
+  private isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 }

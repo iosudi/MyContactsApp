@@ -1,99 +1,209 @@
-<div class="container mx-auto">
-  <div class="p-6">
-
-    <!-- Search -->
-    <div class="mb-4 flex items-center gap-3">
-      <div class="relative w-full max-w-md">
-        <input type="text" [(ngModel)]="searchTerm" placeholder="Search name, phone, or email"
-          class="w-full rounded-xl border border-gray-300 px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-60" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd"
-              d="M12.9 14.32a8 8 0 111.414-1.414l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z"
-              clip-rule="evenodd" />
-          </svg>
-        </span>
-      </div>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-gray-900 sm:text-4xl">Contact Manager</h1>
+      <p class="mt-2 text-lg text-gray-600">Manage your contacts efficiently</p>
     </div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto rounded-xl border border-gray-200">
-      <table class="min-w-[75rem] w-full text-left">
-        <thead class="bg-gray-50">
-          <tr class="text-gray-700">
-            <th class="px-4 py-3 w-[22%]">Name</th>
-            <th class="px-4 py-3 w-[22%]">Phone number</th>
-            <th class="px-4 py-3 w-[22%]">Email Address</th>
-            <th class="px-4 py-3 w-[22%]">Date added</th>
-            <th class="px-4 py-3 w-[12%]">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let contact of contactsList | search: searchTerm; trackBy: trackById"
-            class="border-t hover:bg-gray-50">
-            <!-- Switch to edit inputs if this row is in edit mode -->
-            <ng-container *ngIf="editingId === contact.id; else viewRow">
-              <td class="px-4 py-3">
-                <input type="text" [(ngModel)]="editModel.name"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </td>
-              <td class="px-4 py-3">
-                <input type="text" [(ngModel)]="editModel.phone"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </td>
-              <td class="px-4 py-3">
-                <input type="email" [(ngModel)]="editModel.email"
-                  class="w-full rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </td>
-              <td class="px-4 py-3">
-                {{ contact.dateAdded | date:'mediumDate' }}
-              </td>
-              <td class="px-4 py-3 space-x-2">
-                <button (click)="saveEdit(contact)"
-                  class="rounded-lg bg-green-600 px-3 py-1.5 text-white hover:bg-green-700">
-                  Save
-                </button>
-                <button (click)="cancelEdit()"
-                  class="rounded-lg bg-gray-200 px-3 py-1.5 text-gray-800 hover:bg-gray-300">
-                  Cancel
-                </button>
-              </td>
-            </ng-container>
+    <!-- Main Card -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <!-- Search and Add Section -->
+      <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <!-- Search -->
+          <div class="relative w-full sm:w-96">
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Search contacts..."
+              class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all duration-200" />
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          
+          <!-- Add Contact Button (Triggers modal in real implementation) -->
+          <button (click)="showAddForm = !showAddForm"
+            class="w-full sm:w-auto flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Contact
+          </button>
+        </div>
+      </div>
 
-            <ng-template #viewRow>
-              <td class="px-4 py-3 font-medium text-gray-900">
-                {{ contact.name }}
-              </td>
-              <td class="px-4 py-3">
-                {{ contact.phone | phone }}
-              </td>
-              <td class="px-4 py-3">
-                {{ contact.email }}
-              </td>
-              <td class="px-4 py-3">
-                {{ contact.dateAdded | date:'mediumDate' }}
-              </td>
-              <td class="px-4 py-3 space-x-2">
-                <button (click)="startEdit(contact)"
-                  class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">
-                  Edit
-                </button>
-                <button (click)="deleteContact(contact.id)"
-                  class="rounded-lg bg-rose-600 px-3 py-1.5 text-white hover:bg-rose-700">
-                  Delete
-                </button>
-              </td>
-            </ng-template>
-          </tr>
+      <!-- Add Contact Form -->
+      <div *ngIf="showAddForm" class="p-6 border-b border-gray-200 bg-gray-50 transition-all duration-300 ease-in-out">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Add New Contact
+        </h2>
+        <form (ngSubmit)="addContact()" #addForm="ngForm" novalidate class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input name="name" [(ngModel)]="newContact.name" #name="ngModel" required
+                [class.border-red-500]="name.invalid && (name.dirty || name.touched)"
+                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                placeholder="full name">
+              <div *ngIf="name.invalid && (name.dirty || name.touched)" class="mt-1 text-sm text-red-600">
+                Name is required
+              </div>
+            </div>
 
-          <!-- Empty state -->
-          <tr *ngIf="(contactsList | search: searchTerm).length === 0">
-            <td colspan="5" class="px-4 py-6 text-center text-gray-500">
-              No contacts found.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            <!-- Phone -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <input name="phone" [(ngModel)]="newContact.phone" #phone="ngModel" required
+                [class.border-red-500]="phone.invalid && (phone.dirty || phone.touched)"
+                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                placeholder="phone ">
+              <div *ngIf="phone.invalid && (phone.dirty || phone.touched)" class="mt-1 text-sm text-red-600">
+                Phone is required
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input name="email" type="email" [(ngModel)]="newContact.email" #email="ngModel" required email
+                [class.border-red-500]="email.invalid && (email.dirty || email.touched)"
+                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                placeholder="email">
+              <div *ngIf="email.errors && (email.dirty || email.touched)" class="mt-1 text-sm text-red-600">
+                <div *ngIf="email.errors['required']">Email is required</div>
+                <div *ngIf="email.errors['email']">Invalid email format</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-2">
+            <button type="button" (click)="resetAddForm(addForm)"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+              Cancel
+            </button>
+            <button type="submit" [disabled]="addForm.invalid"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors duration-200 shadow-md">
+              Add Contact
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Contacts Table -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Phone
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date Added
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let contact of contactsList | search: searchTerm; trackBy: trackById" 
+                class="hover:bg-gray-50 transition-colors duration-150">
+              <!-- Edit Mode -->
+              <ng-container *ngIf="editingId === contact.id; else viewRow">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input [(ngModel)]="editModel.name"
+                    class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input [(ngModel)]="editModel.phone"
+                    class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input type="email" [(ngModel)]="editModel.email"
+                    class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ contact.dateAdded | date:'mediumDate' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <button (click)="saveEdit(contact)"
+                    class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors duration-200">
+                    Save
+                  </button>
+                  <button (click)="cancelEdit()"
+                    class="text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 px-3 py-1 rounded-md transition-colors duration-200">
+                    Cancel
+                  </button>
+                </td>
+              </ng-container>
+
+              <!-- View Mode -->
+              <ng-template #viewRow>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <span class="text-indigo-600 font-medium">{{ contact.name.charAt(0).toUpperCase() }}</span>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">{{ contact.name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ contact.phone | phone }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <a href="mailto:{{contact.email}}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                    {{ contact.email }}
+                  </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {{ contact.dateAdded | date:'mediumDate' }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <button (click)="startEdit(contact)"
+                    class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md transition-colors duration-200">
+                    Edit
+                  </button>
+                  <button (click)="deleteContact(contact.id)"
+                    class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors duration-200">
+                    Delete
+                  </button>
+                </td>
+              </ng-template>
+            </tr>
+
+            <!-- Empty State -->
+            <tr *ngIf="(contactsList | search: searchTerm).length === 0">
+              <td colspan="5" class="px-6 py-12 text-center">
+                <div class="flex flex-col items-center justify-center text-gray-400">
+                  <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  <h3 class="text-lg font-medium">No contacts found</h3>
+                  <p class="mt-1">Try adding a new contact or adjusting your search</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
