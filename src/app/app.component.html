@@ -1,1 +1,6 @@
-<app-contact-list [contactsList]="contactsList"></app-contact-list>
+<app-contact-list
+  [contactsList]="contactsList"
+  (add)="addContact($event)"
+  (update)="updateContact($event)"
+  (delete)="deleteContact($event)">
+</app-contact-list>

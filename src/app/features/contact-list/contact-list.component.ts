@@ -1,22 +1,29 @@
 
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Contact } from '../../core/interfaces/contact';
-import { PhonePipe } from '../../core/pipes/phone.pipe';
 import { SearchPipe } from '../../core/pipes/search.pipe';
+import { DateFormatPipe } from '../../core/pipes/date.pipe';
+
+import { ContactItemComponent } from '../contact-item/contact-item.component';
 
 @Component({
   selector: 'app-contact-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PhonePipe, SearchPipe],
+  imports: [CommonModule, FormsModule, SearchPipe,DateFormatPipe, ContactItemComponent],
   templateUrl: './contact-list.component.html',
   styleUrls: ['./contact-list.component.css']
 })
 export class ContactListComponent {
   @Input() contactsList: Contact[] = [];
+  @Output() add = new EventEmitter<Omit<Contact, 'id' | 'dateAdded'>>();
+  @Output() update = new EventEmitter<Contact>();
+  @Output() delete = new EventEmitter<number>();
   searchTerm = '';
   showAddForm = false; // Add this property to control form visibility
+  phonePattern = /^(010|011|012|015)\d{8}$/;
+
 
   // Form models
   newContact: Omit<Contact, 'id' | 'dateAdded'> = {
@@ -33,8 +40,6 @@ export class ContactListComponent {
     email: ''
   };
 
-  private nextId = 4;
-
   // Form handling
   resetAddForm(form: NgForm): void {
     form.resetForm();
@@ -44,15 +49,11 @@ export class ContactListComponent {
 
   addContact(): void {
     if (!this.isValidContact(this.newContact)) return;
+    const { name, phone, email } = this.newContact;
+
     
-    this.contactsList = [
-      ...this.contactsList,
-      {
-        id: this.nextId++,
-        ...this.newContact,
-        dateAdded: new Date()
-      }
-    ];
+    this.add.emit({ name: name.trim(), phone: phone.trim(), email: email.trim() });
+
     this.resetAddForm(new NgForm([], []));
     this.showAddForm = false; // Hide form after adding
   }
@@ -66,11 +67,10 @@ export class ContactListComponent {
 
   saveEdit(originalContact: Contact): void {
     if (!this.editingId || !this.isValidContact(this.editModel)) return;
+    const { name, phone, email } = this.editModel;
     
     if (confirm(`Save changes to ${originalContact.name}?`)) {
-      this.contactsList = this.contactsList.map(c => 
-        c.id === originalContact.id ? { ...c, ...this.editModel } : c
-      );
+      this.update.emit({ ...originalContact, name: name.trim(), phone: phone.trim(), email: email.trim() });
       this.cancelEdit();
     }
   }
@@ -83,7 +83,7 @@ export class ContactListComponent {
   // Delete handling
   deleteContact(id: number): void {
     if (confirm('Delete this contact?')) {
-      this.contactsList = this.contactsList.filter(c => c.id !== id);
+      this.delete.emit(id);
       if (this.editingId === id) this.cancelEdit();
     }
   }
@@ -95,11 +95,16 @@ export class ContactListComponent {
 
   private isValidContact(contact: { name: string; phone: string; email: string }): boolean {
     return !!contact.name?.trim() && 
-           !!contact.phone?.trim() && 
+           !!contact.phone?.trim() &&
+           this.isValidPhone(contact.phone) &&
            this.isValidEmail(contact.email);
   }
 
   private isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  private isValidPhone(phone: string):boolean{
+    return /^(010|011|012|015)\d{8}$/.test(phone);
   }
 }

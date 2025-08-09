@@ -11,6 +11,28 @@ import { contacts } from './shared/data/contacts';
 })
 export class AppComponent {
   title = 'MyContactsApp';
-  contactsList: Contact[] = contacts;
+  contactsList: Contact[] = [...contacts];
+
+  private nextId = this.contactsList.length + 1;
+
+  // Add Contact
+  addContact(newContact: Omit<Contact, 'id' | 'dateAdded'>) {
+    this.contactsList = [
+      ...this.contactsList,
+      { id: this.nextId++, ...newContact, dateAdded: new Date() }
+    ];
+  }
+
+  // Update Contact
+  updateContact(updatedContact: Contact) {
+    this.contactsList = this.contactsList.map(c =>
+      c.id === updatedContact.id ? updatedContact : c
+    );
+  }
+
+  // Delete Contact
+  deleteContact(id: number) {
+    this.contactsList = this.contactsList.filter(c => c.id !== id);
+  }
 
 }
