@@ -1,0 +1,20 @@
+<td class="px-4 py-3 font-medium text-gray-900">
+  {{ contact.name }}
+</td>
+<td class="px-4 py-3">
+  {{ contact.phone | phone }}
+</td>
+<td class="px-4 py-3">
+  {{ contact.email }}
+</td>
+<td class="px-4 py-3">
+  {{ contact.dateAdded | date:'mediumDate' }}
+</td>
+<td class="px-4 py-3 space-x-2">
+  <button (click)="onEdit()" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-700">
+    Edit
+  </button>
+  <button (click)="onDelete()" class="rounded-lg bg-rose-600 px-3 py-1.5 text-white hover:bg-rose-700">
+    Delete
+  </button>
+</td>

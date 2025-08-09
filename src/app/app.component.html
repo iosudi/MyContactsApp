@@ -1,1 +1,8 @@
-<app-contact-list [contactsList]="contactsList"></app-contact-list>
+<h1 class="px-6 py-4 text-2xl font-semibold">{{title}}</h1>
+
+<app-contact-list
+  [contactsList]="contactsList"
+  (add)="addContact($event)"
+  (update)="updateContact($event)"
+  (delete)="deleteContact($event)">
+</app-contact-list>

@@ -1,19 +1,25 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Contact } from '../../core/interfaces/contact';
 
 import { FormsModule } from '@angular/forms';
 import { PhonePipe } from '../../core/pipes/phone.pipe';
 import { SearchPipe } from '../../core/pipes/search.pipe';
+
+import { ContactItemComponent } from '../contact-item/contact-item.component';
+
 @Component({
   selector: 'app-contact-list',
-  imports: [FormsModule, PhonePipe, CommonModule, SearchPipe],
+  imports: [FormsModule, PhonePipe, CommonModule, SearchPipe, ContactItemComponent],
 
   templateUrl: './contact-list.component.html',
   styleUrl: './contact-list.component.css'
 })
 export class ContactListComponent {
   @Input() contactsList: Contact[] = [];
+  @Output() add = new EventEmitter<Omit<Contact, 'id' | 'dateAdded'>>();
+  @Output() update = new EventEmitter<Contact>();
+  @Output() delete = new EventEmitter<number>();
 
   searchTerm: string = ''
 
@@ -33,8 +39,6 @@ export class ContactListComponent {
     email: '',
   };
 
-  private nextId = 4;
-
   trackById(_: number, c: Contact) { return c.id; }
 
   // --- ADD ---
@@ -50,11 +54,7 @@ export class ContactListComponent {
       return;
     }
 
-    const id = this.nextId++;
-    this.contactsList = [
-      ...this.contactsList,
-      { id, name: name.trim(), phone: phone.trim(), email: email.trim(), dateAdded: new Date() },
-    ];
+    this.add.emit({ name: name.trim(), phone: phone.trim(), email: email.trim() });
 
     // reset form
     this.newContact = { name: '', phone: '', email: '' };
@@ -67,8 +67,6 @@ export class ContactListComponent {
   }
 
   saveEdit(c: Contact) {
-    if (!this.editingId) return;
-
     const { name, phone, email } = this.editModel;
 
     if (!name.trim() || !phone.trim() || !email.trim()) {
@@ -80,11 +78,7 @@ export class ContactListComponent {
       return;
     }
 
-    this.contactsList = this.contactsList.map(item =>
-      item.id === c.id
-        ? { ...item, name: name.trim(), phone: phone.trim(), email: email.trim() }
-        : item
-    );
+    this.update.emit({ ...c, name: name.trim(), phone: phone.trim(), email: email.trim() });
 
     this.cancelEdit();
   }
@@ -97,7 +91,7 @@ export class ContactListComponent {
   // --- DELETE ---
   deleteContact(id: number) {
     if (!confirm('Delete this contact?')) return;
-    this.contactsList = this.contactsList.filter(c => c.id !== id);
+    this.delete.emit(id);
     if (this.editingId === id) this.cancelEdit();
   }
 
