@@ -22,7 +22,7 @@
             </div>
           </div>
           
-          <!-- Add Contact Button (Triggers modal in real implementation) -->
+          <!-- Add Contact Button -->
           <button (click)="showAddForm = !showAddForm"
             class="w-full sm:w-auto flex items-center justify-center px-4 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,10 +47,10 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input name="name" [(ngModel)]="newContact.name" #name="ngModel" required
-                [class.border-red-500]="name.invalid && (name.dirty || name.touched)"
+                [class.border-red-500]="name.invalid && (name.dirty || name.touched || addForm.submitted)"
                 class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
                 placeholder="full name">
-              <div *ngIf="name.invalid && (name.dirty || name.touched)" class="mt-1 text-sm text-red-600">
+              <div *ngIf="name.invalid && (name.dirty || name.touched || addForm.submitted)" class="mt-1 text-sm text-red-600">
                 Name is required
               </div>
             </div>
@@ -58,13 +58,35 @@
             <!-- Phone -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input name="phone" type="tel" [(ngModel)]="newContact.phone" #phone="ngModel" required 
+              <input
+                name="phone"
+                type="tel"
+                [(ngModel)]="newContact.phone"
+                #phone="ngModel"
+                required
+                pattern="^(010|011|012|015)\d{8}$"
+                minlength="11"
+                maxlength="11"
+                inputmode="numeric"
+                autocomplete="tel"
                 [class.border-red-500]="phone.invalid && (phone.dirty || phone.touched || addForm.submitted)"
                 class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                placeholder="01012345678">
+                placeholder="01012345678"
+              />
               <div *ngIf="phone.invalid && (phone.dirty || phone.touched || addForm.submitted)" class="mt-1 text-sm text-red-600">
+                <!-- Required first -->
                 <div *ngIf="phone.errors?.['required']">Phone is required</div>
-                <div *ngIf="phone.errors?.['email']">Use 010/011/012/015 followed by 8 digits</div>
+                <!-- Then pattern (letters or wrong prefix) -->
+                <div *ngIf="!phone.errors?.['required'] && phone.errors?.['pattern']">
+                  Invalid phone number (use 010/011/012/015 + 8 digits)
+                </div>
+                <!-- Only show length if pattern is fine -->
+                <div *ngIf="!phone.errors?.['required'] && !phone.errors?.['pattern'] && phone.errors?.['minlength']">
+                  Too short — must be 11 digits
+                </div>
+                <div *ngIf="!phone.errors?.['required'] && !phone.errors?.['pattern'] && phone.errors?.['maxlength']">
+                  Too long — must be 11 digits
+                </div>
               </div>
             </div>
 
@@ -120,46 +142,51 @@
           <tbody class="bg-white divide-y divide-gray-200">
             <ng-container *ngFor="let contact of contactsList | search: searchTerm; trackBy: trackById">
 
-                <!-- Edit row -->
-                <tr *ngIf="editingId === contact.id; else viewRow"
-                    class="hover:bg-gray-50 transition-colors duration-150">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <input [(ngModel)]="editModel.name"
-                          class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <input [(ngModel)]="editModel.phone"
-                          class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <input type="email" [(ngModel)]="editModel.email"
-                          class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ contact.dateAdded | dateFormat }}
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    <button (click)="saveEdit(contact)"
-                            class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md">
-                      Save
-                    </button>
-                    <button (click)="cancelEdit()"
-                            class="text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 px-3 py-1 rounded-md">
-                      Cancel
-                    </button>
-                  </td>
+              <!-- Edit row -->
+              <tr *ngIf="editingId === contact.id; else viewRow"
+                  class="hover:bg-gray-50 transition-colors duration-150">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input [(ngModel)]="editModel.name"
+                         class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input type="tel"
+                         [(ngModel)]="editModel.phone"
+                         pattern="^(010|011|012|015)\d{8}$"
+                         minlength="11"
+                         maxlength="11"
+                         class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <input type="email" [(ngModel)]="editModel.email"
+                         class="w-full px-3 py-1 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ contact.dateAdded | dateFormat }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  <button (click)="saveEdit(contact)"
+                          class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md">
+                    Save
+                  </button>
+                  <button (click)="cancelEdit()
+                          "
+                          class="text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 px-3 py-1 rounded-md">
+                    Cancel
+                  </button>
+                </td>
+              </tr>
+
+              <!-- View row as a component (host is <tr>) -->
+              <ng-template #viewRow>
+                <tr app-contact-item
+                    [contact]="contact"
+                    (edit)="startEdit($event)"
+                    (delete)="deleteContact($event)">
                 </tr>
+              </ng-template>
 
-                <!-- View row as a component (host is <tr>) -->
-                <ng-template #viewRow>
-                  <tr app-contact-item
-                      [contact]="contact"
-                      (edit)="startEdit($event)"
-                      (delete)="deleteContact($event)">
-                  </tr>
-                </ng-template>
-
-              </ng-container>
+            </ng-container>
 
             <!-- Empty State -->
             <tr *ngIf="(contactsList | search: searchTerm).length === 0">
